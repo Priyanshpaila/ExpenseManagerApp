@@ -1,6 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+
+
 class BudgetController extends StateNotifier<double> {
   BudgetController() : super(0.0) {
     _loadBudget();
@@ -10,6 +12,12 @@ class BudgetController extends StateNotifier<double> {
     state = budget;
     final prefs = await SharedPreferences.getInstance();
     await prefs.setDouble('budget', budget);
+  }
+
+  Future<void> resetBudget() async {
+    state = 0.0;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setDouble('budget', 0.0);
   }
 
   Future<void> _loadBudget() async {

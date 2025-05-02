@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
-import '../providers/budget_provider.dart';
+import 'package:my_app_one/features/providers/budget_provider.dart';
+
 import '../providers/expense_provider.dart';
 
 class BudgetStatusCard extends ConsumerWidget {
@@ -11,7 +12,7 @@ class BudgetStatusCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final expenses = ref.watch(expenseProvider);
     final budget = ref.watch(budgetProvider);
-
+    final theme = Theme.of(context);
     final totalSpent = expenses.fold<double>(
       0,
       (sum, item) => sum + item.amount,
@@ -52,15 +53,52 @@ class BudgetStatusCard extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            /// 🧾 Header
+            /// 🧾 Header Row with Reset
             Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Icon(Icons.pie_chart_outline, color: Colors.teal),
-                const SizedBox(width: 8),
-                Text(
-                  "Budget Status",
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
+                Row(
+                  children: [
+                    Icon(
+                      Icons.pie_chart_outline,
+                      color: theme.colorScheme.primary,
+                    ),
+                    const SizedBox(width: 8),
+                    const Text(
+                      "Budget Status",
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
+                    ),
+                  ],
+                ),
+                TextButton.icon(
+                  onPressed: () {
+                    ref.read(budgetProvider.notifier).resetBudget();
+
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: const Text("Budget reset to ₹0"),
+                        backgroundColor: Colors.orange.shade700,
+                        behavior: SnackBarBehavior.floating,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                    );
+                  },
+                  icon: const Icon(Icons.refresh, size: 18, color: Colors.red),
+                  label: const Text(
+                    "Reset",
+                    style: TextStyle(color: Colors.red),
+                  ),
+                  style: TextButton.styleFrom(
+                    minimumSize: Size.zero,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
                   ),
                 ),
               ],

@@ -4,6 +4,7 @@ import 'package:my_app_one/features/controller/filtered_expense_provider.dart';
 import 'package:my_app_one/features/providers/budget_provider.dart';
 import 'package:my_app_one/features/widgets/charts_widget.dart';
 import 'package:my_app_one/features/widgets/expense_list.dart';
+import 'package:my_app_one/widgets/drawer_widget.dart';
 import 'package:my_app_one/widgets/footer_widget.dart';
 import 'package:my_app_one/widgets/my_appbar.dart';
 import 'package:printing/printing.dart';
@@ -19,6 +20,18 @@ class HistoryScreen extends ConsumerStatefulWidget {
 class _HistoryScreenState extends ConsumerState<HistoryScreen> {
   int selectedMonth = DateTime.now().month;
   int selectedYear = DateTime.now().year;
+  String? selectedCategory;
+
+  @override
+  void initState() {
+    super.initState();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(selectedMonthProvider.notifier).state = selectedMonth;
+      ref.read(selectedYearProvider.notifier).state = selectedYear;
+      ref.read(selectedCategoryProvider.notifier).state = selectedCategory;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -26,14 +39,12 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
     final isDark = theme.brightness == Brightness.dark;
     final expenses = ref.watch(filteredExpenseProvider);
 
-    ref.read(selectedMonthProvider.notifier).state = selectedMonth;
-    ref.read(selectedYearProvider.notifier).state = selectedYear;
-
     final bgColor = isDark ? Colors.black : Colors.white;
     final cardColor = isDark ? Colors.grey[900] : Colors.grey[50];
 
     return Scaffold(
       backgroundColor: bgColor,
+      drawer: const DrawerWidget(),
       appBar: MyAppbar(
         title: 'History',
         actions: [
@@ -86,16 +97,18 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
                       Expanded(
                         child: DropdownButtonFormField<int>(
                           value: selectedMonth,
-                          items:
-                              List.generate(12, (i) => i + 1).map((month) {
-                                return DropdownMenuItem(
-                                  value: month,
-                                  child: Text(monthName(month)),
-                                );
-                              }).toList(),
+                          items: List.generate(12, (i) => i + 1).map((month) {
+                            return DropdownMenuItem(
+                              value: month,
+                              child: Text(monthName(month)),
+                            );
+                          }).toList(),
                           onChanged: (val) {
                             if (val != null) {
-                              setState(() => selectedMonth = val);
+                              setState(() {
+                                selectedMonth = val;
+                                ref.read(selectedMonthProvider.notifier).state = val;
+                              });
                             }
                           },
                           decoration: const InputDecoration(labelText: 'Month'),
@@ -105,25 +118,48 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
                       Expanded(
                         child: DropdownButtonFormField<int>(
                           value: selectedYear,
-                          items:
-                              List.generate(
-                                5,
-                                (i) => DateTime.now().year - i,
-                              ).map((year) {
-                                return DropdownMenuItem(
-                                  value: year,
-                                  child: Text(year.toString()),
-                                );
-                              }).toList(),
+                          items: List.generate(5, (i) => DateTime.now().year - i).map((year) {
+                            return DropdownMenuItem(
+                              value: year,
+                              child: Text(year.toString()),
+                            );
+                          }).toList(),
                           onChanged: (val) {
                             if (val != null) {
-                              setState(() => selectedYear = val);
+                              setState(() {
+                                selectedYear = val;
+                                ref.read(selectedYearProvider.notifier).state = val;
+                              });
                             }
                           },
                           decoration: const InputDecoration(labelText: 'Year'),
                         ),
                       ),
                     ],
+                  ),
+                  const SizedBox(height: 16),
+                  DropdownButtonFormField<String?>(
+                    value: selectedCategory,
+                    icon: const Icon(Icons.expand_more),
+                    decoration: const InputDecoration(
+                      labelText: 'Category',
+                      prefixIcon: Icon(Icons.category_outlined),
+                    ),
+                    items: const [
+                      DropdownMenuItem(value: null, child: Text('All Categories')),
+                      DropdownMenuItem(value: 'Food', child: Text('Food')),
+                      DropdownMenuItem(value: 'Transport', child: Text('Transport')),
+                      DropdownMenuItem(value: 'Rent', child: Text('Rent')),
+                      DropdownMenuItem(value: 'Bills', child: Text('Bills')),
+                      DropdownMenuItem(value: 'Shopping', child: Text('Shopping')),
+                      DropdownMenuItem(value: 'Others', child: Text('Others')),
+                    ],
+                    onChanged: (val) {
+                      setState(() {
+                        selectedCategory = val;
+                        ref.read(selectedCategoryProvider.notifier).state = val;
+                      });
+                    },
                   ),
                 ],
               ),
@@ -191,18 +227,8 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
 
   String monthName(int month) {
     const months = [
-      'Jan',
-      'Feb',
-      'Mar',
-      'Apr',
-      'May',
-      'Jun',
-      'Jul',
-      'Aug',
-      'Sep',
-      'Oct',
-      'Nov',
-      'Dec',
+      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
     ];
     return months[month - 1];
   }
