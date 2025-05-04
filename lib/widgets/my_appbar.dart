@@ -1,3 +1,5 @@
+// ignore_for_file: deprecated_member_use
+
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -13,6 +15,7 @@ class MyAppbar extends ConsumerWidget implements PreferredSizeWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final screenWidth = MediaQuery.of(context).size.width;
 
     return ClipRRect(
       borderRadius: const BorderRadius.vertical(bottom: Radius.circular(24)),
@@ -32,52 +35,63 @@ class MyAppbar extends ConsumerWidget implements PreferredSizeWidget {
           filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
           child: SafeArea(
             bottom: false,
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      title,
-                      textAlign: TextAlign.center,
-                      style: theme.textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        letterSpacing: 0.5,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  ...?actions,
-                  const SizedBox(width: 4),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                /// 🍔 Drawer Button
+                IconButton(
+                  icon: const Icon(Icons.menu_rounded),
+                  tooltip: 'Open menu',
+                  onPressed: () => Scaffold.of(context).openDrawer(),
+                ),
 
-                  /// 🌗 Theme Toggle
-                  IconButton(
-                    tooltip: 'Toggle Theme',
-                    icon: AnimatedSwitcher(
-                      duration: const Duration(milliseconds: 350),
-                      transitionBuilder:
-                          (child, animation) => RotationTransition(
-                            turns: animation,
-                            child: child,
-                          ),
-                      child: Icon(
-                        isDark
-                            ? Icons.light_mode_rounded
-                            : Icons.dark_mode_rounded,
-                        key: ValueKey<bool>(isDark),
-                        color: isDark ? Colors.white : Colors.black,
-                      ),
+                /// 🔠 Title (responsive font size)
+                Expanded(
+                  child: Text(
+                    title,
+                    textAlign: TextAlign.center,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.titleLarge?.copyWith(
+                      fontSize: screenWidth < 360 ? 18 : 20,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 0.5,
                     ),
-                    onPressed: () {
-                      final current = ref.read(themeModeProvider);
-                      ref.read(themeModeProvider.notifier).state =
-                          current == ThemeMode.dark
-                              ? ThemeMode.light
-                              : ThemeMode.dark;
-                    },
                   ),
-                ],
-              ),
+                ),
+
+                /// 🔘 Action Buttons + Theme Switch
+                Row(
+                  children: [
+                    ...?actions,
+                    const SizedBox(width: 4),
+                    IconButton(
+                      tooltip: 'Toggle Theme',
+                      icon: AnimatedSwitcher(
+                        duration: const Duration(milliseconds: 350),
+                        transitionBuilder:
+                            (child, animation) => RotationTransition(
+                              turns: animation,
+                              child: child,
+                            ),
+                        child: Icon(
+                          isDark
+                              ? Icons.light_mode_rounded
+                              : Icons.dark_mode_rounded,
+                          key: ValueKey<bool>(isDark),
+                          color: isDark ? Colors.white : Colors.black,
+                        ),
+                      ),
+                      onPressed: () {
+                        final current = ref.read(themeModeProvider);
+                        ref.read(themeModeProvider.notifier).state =
+                            current == ThemeMode.dark
+                                ? ThemeMode.light
+                                : ThemeMode.dark;
+                      },
+                    ),
+                  ],
+                ),
+              ],
             ),
           ),
         ),
